@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>火山引擎语音识别系统</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+
+</head>
+<body>
+    <div class="main-layout">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <!-- 系统设置按钮 -->
+                <div class="settings-btn" onclick="openSettings()">
+                    <i class="fas fa-cog"></i>
+                    <span>系统设置</span>
+                </div>
+
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h1>AI+会议助手系统</h1>
+                <p class="subtitle">智能会议录音转译 · AI撰稿生成纪要 · 专业术语规范化</p>
+            </div>
+
+            <!-- 上传区域 -->
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">
+                        <p>点击选择文件或拖拽音频文件至此区域上传</p>
+                        <p class="upload-hint">支持格式：MP3、WAV、OGG、RAW、AIFF、M4A，最大500MB</p>
+                    </div>
+                    <button class="upload-btn" id="uploadBtn">
+                        <i class="fas fa-upload"></i>
+                        选择音频文件
+                    </button>
+                    <input type="file" id="fileInput" accept=".mp3,.wav,.ogg,.raw,.aiff,.m4a" style="display: none;">
+                </div>
+            </div>
+
+            <!-- URL输入区域 -->
+            <div class="url-section">
+                <div class="divider">
+                    <span>或</span>
+                </div>
+                <div class="url-input-group">
+                    <input type="url" id="audioUrl" placeholder="输入音频文件URL地址（如：https://example.com/audio.wav）" class="url-input">
+                    <button class="url-submit-btn" id="urlSubmitBtn">
+                        <i class="fas fa-link"></i>
+                        提交URL
+                    </button>
+                </div>
+                <div style="margin-top: 8px; font-size: 12px; color: #718096; text-align: center;">
+                    <p>💡 建议使用公开可访问的音频URL获得最佳效果</p>
+                </div>
+            </div>
+
+            <!-- 配置选项 -->
+            <div class="config-section">
+                <h3>识别配置</h3>
+                <div class="config-container">
+                    <div class="config-row">
+                        <div class="config-item">
+                            <label for="enableItn">
+                                <i class="fas fa-spell-check" style="color: #667eea;"></i>
+                                文本规范
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="enableItn" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="config-item">
+                            <label for="enablePunc">
+                                <i class="fas fa-quote-right" style="color: #667eea;"></i>
+                                标点符号
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="enablePunc" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="config-row">
+                        <div class="config-item">
+                            <label for="enableDialect">
+                                <i class="fas fa-language" style="color: #667eea;"></i>
+                                方言支持
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="enableDialect" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="config-item">
+                            <label for="showUtterances">
+                                <i class="fas fa-list-ul" style="color: #667eea;"></i>
+                                详细分句
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="showUtterances" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="config-row">
+                        <div class="config-item">
+                            <label for="enableSpeaker">
+                                <i class="fas fa-users" style="color: #667eea;"></i>
+                                说话人分离
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="enableSpeaker">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="config-item">
+                            <label for="focusLastSpeakers">
+                                <i class="fas fa-bullseye" style="color: #667eea;"></i>
+                                聚焦发言人
+                            </label>
+                            <label class="switch">
+                                <input type="checkbox" id="focusLastSpeakers" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 处理状态 -->
+            <div class="status-section" id="statusSection" style="display: none;">
+                <div class="status-card">
+                    <div class="status-icon">
+                        <i class="fas fa-cog fa-spin"></i>
+                    </div>
+                    <div class="status-content">
+                        <h3 id="statusTitle">处理中</h3>
+                        <p id="statusMessage">正在处理您的音频文件，请稍候...</p>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="task-info">
+                            <span>任务ID: <code id="taskId">-</code></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 状态信息容器（用于显示解决方案等） -->
+            <div id="status" style="display: none;"></div>
+
+
+
+            <!-- 操作按钮 -->
+            <div class="action-section">
+                <!-- 主要按钮 -->
+                <button class="action-btn primary" id="startBtn">
+                    <i class="fas fa-rocket"></i>
+                    开始处理
+                </button>
+
+                <!-- 次要按钮 -->
+                <div class="secondary-buttons">
+                    <button class="action-btn" id="recordBtn" style="background: linear-gradient(135deg, #e53e3e, #c53030); color: white;">
+                        <i class="fas fa-microphone"></i>
+                        现场录音
+                    </button>
+                    <button class="action-btn" id="historyBtn" style="background: linear-gradient(135deg, #4299e1, #3182ce); color: white;">
+                        <i class="fas fa-history"></i>
+                        查看历史
+                    </button>
+                </div>
+
+                <!-- 重置按钮 -->
+                <button class="action-btn secondary" id="resetBtn" style="display: none; background: #e2e8f0; color: #4a5568;">
+                    <i class="fas fa-redo"></i>
+                    重新开始
+                </button>
+            </div>
+
+            <!-- 任务历史弹窗 -->
+            <div class="modal" id="historyModal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>任务历史</h3>
+                        <button class="modal-close" id="closeHistoryModal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="task-input-section">
+                            <h4>查询特定任务</h4>
+                            <div class="task-input-group">
+                                <input type="text" id="taskIdInput" placeholder="输入任务ID（如：8fa40e73-c66a-48ff-8c77-33316e6a7519）" class="task-input">
+                                <button class="task-query-btn" id="queryTaskBtn">
+                                    <i class="fas fa-search"></i>
+                                    查询
+                                </button>
+                            </div>
+                        </div>
+                        <div class="task-list-section">
+                            <h4>已知任务列表</h4>
+                            <div class="known-tasks">
+                                <div class="task-item" data-task-id="8fa40e73-c66a-48ff-8c77-33316e6a7519">
+                                    <div class="task-info">
+                                        <span class="task-id">8fa40e73-c66a-48ff-8c77-33316e6a7519</span>
+                                        <span class="task-status">可能已完成</span>
+                                    </div>
+                                    <button class="task-action-btn">查询</button>
+                                </div>
+                                <div class="task-item" data-task-id="a53ae830-23a2-44d6-a67e-89247c7543e1">
+                                    <div class="task-info">
+                                        <span class="task-id">a53ae830-23a2-44d6-a67e-89247c7543e1</span>
+                                        <span class="task-status">可能已完成</span>
+                                    </div>
+                                    <button class="task-action-btn">查询</button>
+                                </div>
+                                <div class="task-item" data-task-id="08b2fee3-31d7-4ceb-b208-17e7b74392d1">
+                                    <div class="task-info">
+                                        <span class="task-id">08b2fee3-31d7-4ceb-b208-17e7b74392d1</span>
+                                        <span class="task-status">处理中</span>
+                                    </div>
+                                    <button class="task-action-btn">查询</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="task-result-section" id="taskResultSection" style="display: none;">
+                            <h4>查询结果</h4>
+                            <div class="task-result" id="taskResult">
+                                <!-- 查询结果将在这里显示 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- 右侧面板 -->
+        <div class="right-panel">
+            <div class="panel-content">
+                <!-- 默认欢迎界面 -->
+                <div class="welcome-section" id="welcomeSection">
+                    <div class="welcome-content">
+                        <div class="welcome-icon">
+                            <i class="fas fa-microphone-alt"></i>
+                        </div>
+                        <h2>欢迎使用AI会议助手</h2>
+                        <p class="welcome-description">
+                            上传音频文件或输入URL开始智能转录<br>
+                            支持多种音频格式，自动生成会议纪要
+                        </p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>高精度语音识别</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>智能标点分句</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>AI生成会议纪要</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span>专业术语规范化</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 转录记录区域 -->
+                <div class="transcription-section" id="transcriptionSection" style="display: none;">
+                    <div class="section-header">
+                        <div class="header-left">
+                            <h2>转录记录</h2>
+                        </div>
+                        <div class="audio-info">
+                            <span class="info-item">时长: <span id="audioDuration">-</span></span>
+                            <span class="info-item">分句: <span id="utteranceCount">-</span></span>
+                            <span class="info-item">处理: <span id="processTime">-</span></span>
+                        </div>
+                    </div>
+                    <div class="utterances-list" id="utterancesList">
+                        <!-- 转录内容将在这里显示 -->
+                    </div>
+                    <div class="section-footer">
+                        <button class="collapse-btn" id="transcriptionCollapseBtn" title="收缩/展开转录记录">
+                            <i class="fas fa-chevron-up"></i>
+                            <span>收起转录记录</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 录音控制界面 -->
+                <div class="recording-section" id="recordingSection" style="display: none;">
+                    <div class="section-header">
+                        <h2>现场录音</h2>
+                        <div class="recording-status" id="recordingStatus">
+                            <span class="status-text">准备录音</span>
+                        </div>
+                    </div>
+
+                    <!-- 录音控制 -->
+                    <div class="recording-controls">
+                        <div class="recording-visualizer">
+                            <canvas id="audioVisualizer" width="400" height="100"></canvas>
+                        </div>
+
+                        <div class="control-buttons">
+                            <button class="record-btn" id="startRecordBtn">
+                                <i class="fas fa-microphone"></i>
+                                开始录音
+                            </button>
+                            <button class="record-btn pause" id="pauseRecordBtn" style="display: none;">
+                                <i class="fas fa-pause"></i>
+                                暂停录音
+                            </button>
+                            <button class="record-btn stop" id="stopRecordBtn" style="display: none;">
+                                <i class="fas fa-stop"></i>
+                                停止录音
+                            </button>
+                        </div>
+
+                        <div class="recording-info">
+                            <div class="time-display">
+                                <span class="label">录音时长：</span>
+                                <span class="time" id="recordingTime">00:00</span>
+                            </div>
+                            <div class="file-size">
+                                <span class="label">文件大小：</span>
+                                <span class="size" id="recordingSize">0 KB</span>
+                            </div>
+                        </div>
+
+                        <!-- 录音完成后的操作 -->
+                        <div class="recording-actions" id="recordingActions" style="display: none;">
+                            <button class="action-btn" id="playRecordingBtn">
+                                <i class="fas fa-play"></i>
+                                播放录音
+                            </button>
+                            <button class="action-btn" id="uploadRecordingBtn">
+                                <i class="fas fa-upload"></i>
+                                上传处理
+                            </button>
+                            <button class="action-btn secondary" id="discardRecordingBtn">
+                                <i class="fas fa-trash"></i>
+                                重新录音
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 会议纪要区域 -->
+                <div class="meeting-summary-section" id="meetingSummarySection" style="display: none;">
+                    <div class="section-header">
+                        <h2>会议纪要</h2>
+                        <div class="summary-actions">
+                            <button class="download-btn primary" id="downloadWordBtn">
+                                <i class="fas fa-file-word"></i>
+                                Word纪要
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 会议纪要内容 -->
+                    <div class="minutes-content" id="minutesContent">
+                        <!-- 加载动画 -->
+                        <div class="loading-container" id="minutesLoadingContainer">
+                            <div class="loading-spinner">
+                                <div class="spinner"></div>
+                            </div>
+                            <div class="loading-text">
+                                <h3>AI正在生成会议纪要</h3>
+                                <p>正在分析转录内容，生成结构化会议纪要...</p>
+                                <div class="loading-steps">
+                                    <div class="step active" id="step1">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>分析转录内容</span>
+                                    </div>
+                                    <div class="step" id="step2">
+                                        <i class="fas fa-circle"></i>
+                                        <span>提取关键信息</span>
+                                    </div>
+                                    <div class="step" id="step3">
+                                        <i class="fas fa-circle"></i>
+                                        <span>生成会议纪要</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 会议纪要将在这里显示 -->
+                        <div class="minutes-result" id="minutesResult" style="display: none;">
+                            <!-- 实际的会议纪要内容 -->
+                        </div>
+
+                        <!-- 文本选择工具栏 - 飞书风格 -->
+                        <div id="textSelectionToolbar" style="display: none;">
+                            <div class="toolbar-buttons">
+                                <button class="toolbar-btn" onclick="processTextWithAI('expand', '请扩写以下内容，使其更加详细和丰富：')">
+                                    <i class="fas fa-magic"></i>AI扩写
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('improve', '请改进以下文本的写作质量，使其更加专业和流畅：')">
+                                    <i class="fas fa-edit"></i>改进写作
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('summarize', '请总结以下内容的要点：')">
+                                    <i class="fas fa-list"></i>总结
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('grammar', '请检查并修正以下文本的拼写和语法错误：')">
+                                    <i class="fas fa-spell-check"></i>检查拼写和语法
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('simplify', '请简化以下内容，使其更容易理解：')">
+                                    <i class="fas fa-compress"></i>简化内容
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('elaborate', '请详细阐述以下内容：')">
+                                    <i class="fas fa-plus-circle"></i>丰富内容
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('translate', '请将以下内容翻译成英语：')">
+                                    <i class="fas fa-language"></i>翻译
+                                </button>
+                                <button class="toolbar-btn" onclick="processTextWithAI('explain', '请解释以下内容的含义：')">
+                                    <i class="fas fa-question-circle"></i>解释
+                                </button>
+                            </div>
+                            <div class="custom-prompt">
+                                <input type="text" placeholder="告诉AI下一步应该如何？比如：" id="customPromptInput">
+                                <button onclick="processCustomPrompt()">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 录音状态指示器 -->
+    <div class="recording-indicator" id="recordingIndicator">
+        <i class="fas fa-circle"></i>
+        <span>正在录音</span>
+    </div>
+
+    <!-- 系统设置弹窗 -->
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2><i class="fas fa-cog"></i> 系统设置</h2>
+                <button class="close-btn" onclick="closeSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="settings-body">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" onclick="switchTab('ai')">
+                        <i class="fas fa-brain"></i> AI配置
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('storage')">
+                        <i class="fas fa-cloud"></i> 存储配置
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('asr')">
+                        <i class="fas fa-microphone"></i> 语音识别
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('prompt')">
+                        <i class="fas fa-edit"></i> 提示词配置
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('system')">
+                        <i class="fas fa-cogs"></i> 系统配置
+                    </button>
+                </div>
+
+                <div class="settings-panels">
+                    <!-- AI配置面板 -->
+                    <div class="settings-panel active" id="ai-panel">
+                        <h3>豆包AI配置</h3>
+                        <div class="form-group">
+                            <label>API密钥</label>
+                            <input type="password" id="arkApiKey" placeholder="请输入豆包API密钥">
+                        </div>
+                        <div class="form-group">
+                            <label>模型端点</label>
+                            <input type="text" id="arkModel" placeholder="ep-20250618123643-dtts7">
+                        </div>
+                        <div class="form-group">
+                            <label>API基础URL</label>
+                            <input type="text" id="arkBaseUrl" placeholder="https://ark.cn-beijing.volces.com/api/v3">
+                        </div>
+                        <div class="form-group">
+                            <label>请求超时时间（秒）</label>
+                            <input type="number" id="arkTimeout" placeholder="300" min="30" max="600">
+                        </div>
+                    </div>
+
+                    <!-- 存储配置面板 -->
+                    <div class="settings-panel" id="storage-panel">
+                        <h3>火山引擎TOS对象存储配置</h3>
+                        <div class="form-group">
+                            <label>Access Key ID</label>
+                            <input type="text" id="tosAccessKey" placeholder="请输入TOS Access Key ID">
+                        </div>
+                        <div class="form-group">
+                            <label>Secret Access Key</label>
+                            <input type="password" id="tosSecretKey" placeholder="请输入TOS Secret Access Key">
+                        </div>
+                        <div class="form-group">
+                            <label>存储桶名称</label>
+                            <input type="text" id="tosBucket" placeholder="meetaudio">
+                        </div>
+                        <div class="form-group">
+                            <label>区域</label>
+                            <select id="tosRegion">
+                                <option value="cn-beijing">北京 (cn-beijing)</option>
+                                <option value="cn-shanghai">上海 (cn-shanghai)</option>
+                                <option value="cn-guangzhou">广州 (cn-guangzhou)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>最大文件大小（MB）</label>
+                            <input type="number" id="maxFileSize" placeholder="500" min="1" max="1000">
+                        </div>
+                    </div>
+
+                    <!-- 语音识别配置面板 -->
+                    <div class="settings-panel" id="asr-panel">
+                        <h3>火山引擎语音识别配置</h3>
+                        <div class="form-group">
+                            <label>App Key</label>
+                            <input type="text" id="asrAppKey" placeholder="请输入ASR App Key">
+                        </div>
+                        <div class="form-group">
+                            <label>Access Key</label>
+                            <input type="password" id="asrAccessKey" placeholder="请输入ASR Access Key">
+                        </div>
+                        <div class="form-group">
+                            <label>模型名称</label>
+                            <select id="asrModel">
+                                <option value="bigmodel">大模型 (bigmodel)</option>
+                                <option value="standard">标准模型 (standard)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>请求超时时间（秒）</label>
+                            <input type="number" id="asrTimeout" placeholder="1800" min="300" max="3600">
+                        </div>
+                    </div>
+
+                    <!-- 提示词配置面板 -->
+                    <div class="settings-panel" id="prompt-panel">
+                        <div class="prompt-panel-header">
+                            <h3>会议纪要生成提示词</h3>
+                            <button class="ai-optimize-btn" onclick="showAIOptimizeDialog()">
+                                <i class="fas fa-magic"></i> AI优化
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <label>系统提示词</label>
+                            <textarea id="systemPrompt" rows="10" placeholder="请输入系统提示词..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>行业术语词汇表</label>
+                            <textarea id="glossary" rows="8" placeholder="请输入行业术语词汇表，每行一个术语..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 系统配置面板 -->
+                    <div class="settings-panel" id="system-panel">
+                        <h3>系统配置</h3>
+                        <div class="form-group">
+                            <label>异步任务工作线程数</label>
+                            <input type="number" id="workerThreads" placeholder="2" min="1" max="8">
+                        </div>
+                        <div class="form-group">
+                            <label>日志级别</label>
+                            <select id="logLevel">
+                                <option value="DEBUG">调试 (DEBUG)</option>
+                                <option value="INFO">信息 (INFO)</option>
+                                <option value="WARNING">警告 (WARNING)</option>
+                                <option value="ERROR">错误 (ERROR)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>会议纪要模板</label>
+                            <textarea id="minutesTemplate" rows="6" placeholder="请输入会议纪要模板..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button class="btn-secondary" onclick="resetSettings()">
+                    <i class="fas fa-undo"></i> 重置默认
+                </button>
+                <button class="btn-primary" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> 保存配置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI优化对话框 -->
+    <div id="aiOptimizeModal" class="modal" style="display: none;">
+        <div class="modal-content ai-optimize-modal">
+            <div class="modal-header">
+                <h3><i class="fas fa-magic"></i> AI一键生成配置</h3>
+                <span class="close" onclick="closeAIOptimizeDialog()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>描述您的会议纪要需求</label>
+                    <textarea id="aiOptimizeInput" rows="4" placeholder="例如：我需要生成技术团队周会纪要，重点关注项目进度、技术难点和下周计划..."></textarea>
+                </div>
+                <div class="ai-optimize-tips">
+                    <p><i class="fas fa-lightbulb"></i> 提示：请简单描述您的会议类型、关注重点和特殊要求，AI将为您生成专业的提示词配置</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAIOptimizeDialog()">取消</button>
+                <button class="btn-primary" onclick="generateOptimizedPrompt()" id="generateBtn">
+                    <i class="fas fa-magic"></i> 生成配置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=20250625-2345"></script>
+</body>
+</html>

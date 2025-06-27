@@ -1,0 +1,112 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment variables and sensitive files
+.env
+.env.local
+.env.production
+.env.staging
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# 敏感配置文件
+*.key
+*.pem
+*.p12
+*.pfx
+config.json
+system_config.json
+*_config.json
+secrets.json
+api_keys.txt
+credentials.txt
+secrets.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+.tox/
+.nox/
+
+# Logs
+*.log
+logs/
+
+# 项目特定文件
+# 上传文件和音频文件
+uploads/
+web_demo/uploads/
+*.wav
+*.mp3
+*.mp4
+*.webm
+*.m4a
+*.flac
+*.aac
+
+# 任务数据和生成文件
+task_data/
+web_demo/task_data/
+*.docx
+*.pdf
+
+# 临时文件和备份
+tmp/
+temp/
+.tmp/
+.temp/
+*.bak
+*.backup
+*.old
+
+# 压缩文件
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# ngrok
+ngrok
+ngrok-*
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

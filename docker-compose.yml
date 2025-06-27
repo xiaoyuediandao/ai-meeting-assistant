@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  meetaudio-web:
+    image: crpi-wiuzet22tj71lqnb.cn-chengdu.personal.cr.aliyuncs.com/testxiaoli/demo:meetaudio-latest
+    container_name: meetaudio-web
+    ports:
+      - "8080:8080"
+    environment:
+      # Flask配置
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+
+      # 应用配置
+      - MAX_CONTENT_LENGTH=524288000  # 500MB
+      - UPLOAD_TIMEOUT=300
+      - AI_TIMEOUT=300
+      
+    volumes:
+      # 持久化存储
+      - meetaudio-uploads:/app/web_demo/uploads
+      - meetaudio-tasks:/app/web_demo/task_data
+      - meetaudio-logs:/app/logs
+
+      # 配置文件持久化存储（用户可通过系统设置界面配置）
+      - meetaudio-config:/app/web_demo/config
+      
+    restart: unless-stopped
+    
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    
+    # 网络配置
+    networks:
+      - meetaudio-network
+
+  # Nginx反向代理（可选）
+  nginx:
+    image: nginx:alpine
+    container_name: meetaudio-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - meetaudio-web
+    restart: unless-stopped
+    networks:
+      - meetaudio-network
+    profiles:
+      - with-nginx
+
+volumes:
+  meetaudio-uploads:
+    driver: local
+  meetaudio-tasks:
+    driver: local
+  meetaudio-logs:
+    driver: local
+  meetaudio-config:
+    driver: local
+
+networks:
+  meetaudio-network:
+    driver: bridge

@@ -1,0 +1,5 @@
+# Web Demo 额外依赖
+gunicorn>=20.1.0
+tos>=2.8.0
+gevent>=22.10.0
+eventlet>=0.33.0
