@@ -34,7 +34,7 @@ class AIWriter:
         self.templates = MeetingTemplates()
         self.client = None
         self.api_key = api_key or os.getenv("ARK_API_KEY")
-        self.model = model or os.getenv("ARK_MODEL", "ep-20250618123643-dtts7")
+        self.model = model or os.getenv("ARK_MODEL", "ARK_MODEL_EP")
         self.base_url = base_url or os.getenv("ARK_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3")
         self.timeout = timeout or int(os.getenv("ARK_TIMEOUT", "300"))
         self._init_ai_client()
