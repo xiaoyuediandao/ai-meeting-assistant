@@ -48,7 +48,7 @@ docker-compose -f docker-compose.prod.yml logs -f meetaudio-web
 
 #### AI配置
 - **豆包AI API Key**: 您的豆包AI API密钥
-- **模型名称**: ep-20250511141457-zf4l4 (或您的模型)
+- **模型名称**: 您的模型
 - **API地址**: https://ark.cn-beijing.volces.com/api/v3
 - **超时时间**: 300秒
 
