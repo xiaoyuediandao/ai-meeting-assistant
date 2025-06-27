@@ -196,7 +196,7 @@ class AIWriter:
 
         try:
             # 使用之前能工作的模型
-            model = os.getenv("ARK_MODEL", "ep-20250511141457-zf4l4")
+            model = os.getenv("ARK_MODEL", "ep-202***")
 
             # 检查内容长度，决定是否需要分段处理
             max_content_length = 8000  # 单次处理的最大字符数
@@ -1061,7 +1061,7 @@ class AIWriter:
     def _ai_enhance_content(self, text: str, enhancement_type: str) -> str:
         """使用AI增强内容"""
         try:
-            model = os.getenv("ARK_MODEL", "ep-20250511141457-zf4l4")
+            model = os.getenv("ARK_MODEL", "ep-202***")
 
             # 根据增强类型构建提示词
             prompts = {
@@ -1193,7 +1193,7 @@ class AIWriter:
     def _ai_process_with_prompt(self, prompt: str) -> str:
         """使用AI处理自定义提示词"""
         try:
-            model = os.getenv("ARK_MODEL", "ep-20250511141457-zf4l4")
+            model = os.getenv("ARK_MODEL", "ep-202***")
 
             logger.info(f"使用AI处理自定义提示词，长度: {len(prompt)}")
 
